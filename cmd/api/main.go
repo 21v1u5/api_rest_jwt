@@ -12,6 +12,7 @@ import (
 
 	"github.com/21v1u5/api_rest_jwt/internal/config"
 	"github.com/21v1u5/api_rest_jwt/internal/database"
+	"github.com/21v1u5/api_rest_jwt/internal/httpx"
 )
 
 func main() {
@@ -41,11 +42,10 @@ func run() error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
 		if err := pool.Ping(r.Context()); err != nil {
-			http.Error(w, "database unavailable", http.StatusServiceUnavailable)
+			httpx.Error(w, http.StatusServiceUnavailable, "database unavailable")
 			return
 		}
-		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(`{"status":"ok"}`))
+		httpx.WriteJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 	})
 
 	srv := &http.Server{
