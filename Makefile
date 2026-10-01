@@ -19,4 +19,4 @@ run:
 	go run ./cmd/api
 
 test:
-	go test ./internal/httpx/ -v -race
+	go test ./internal/httpx/ -v

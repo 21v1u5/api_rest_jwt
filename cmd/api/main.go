@@ -13,6 +13,7 @@ import (
 	"github.com/21v1u5/api_rest_jwt/internal/config"
 	"github.com/21v1u5/api_rest_jwt/internal/database"
 	"github.com/21v1u5/api_rest_jwt/internal/httpx"
+	"github.com/21v1u5/api_rest_jwt/internal/user"
 )
 
 func main() {
@@ -40,6 +41,10 @@ func run() error {
 	defer pool.Close()
 
 	mux := http.NewServeMux()
+	userRepo := user.NewRepository(pool)
+	userSvc := user.NewService(userRepo)
+	userHandler := user.NewHandler(userSvc)
+	userHandler.RegisterRoutes(mux)
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
 		if err := pool.Ping(r.Context()); err != nil {
 			httpx.Error(w, http.StatusServiceUnavailable, "database unavailable")
