@@ -12,6 +12,11 @@ import (
 
 type Store interface {
 	Create(ctx context.Context, u *User) error
+	GetByID(ctx context.Context, id int64) (*User, error)
+}
+
+func (s *Service) GetByID(ctx context.Context, id int64) (*User, error) {
+	return s.store.GetByID(ctx, id)
 }
 
 type Service struct {

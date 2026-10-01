@@ -55,3 +55,22 @@ func (r *Repository) GetByEmail(ctx context.Context, email string) (*User, error
 
 	return &u, nil
 }
+
+func (r *Repository) GetByID(ctx context.Context, id int64) (*User, error) {
+	const q = `
+		SELECT id, name, email, password_hash, created_at, updated_at
+		FROM users
+		WHERE id = $1`
+
+	var u User
+	err := r.db.QueryRow(ctx, q, id).
+		Scan(&u.ID, &u.Name, &u.Email, &u.PasswordHash, &u.CreatedAt, &u.UpdatedAt)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, ErrNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("get user by id: %w", err)
+	}
+
+	return &u, nil
+}

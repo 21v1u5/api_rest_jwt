@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/21v1u5/api_rest_jwt/internal/auth"
 	"github.com/21v1u5/api_rest_jwt/internal/config"
 	"github.com/21v1u5/api_rest_jwt/internal/database"
 	"github.com/21v1u5/api_rest_jwt/internal/httpx"
@@ -41,10 +42,14 @@ func run() error {
 	defer pool.Close()
 
 	mux := http.NewServeMux()
+	tokens := auth.NewTokenManager(cfg.JWTSecret, cfg.AcessTTL)
+
 	userRepo := user.NewRepository(pool)
 	userSvc := user.NewService(userRepo)
-	userHandler := user.NewHandler(userSvc)
-	userHandler.RegisterRoutes(mux)
+	user.NewHandler(userSvc).RegisterRoutes(mux, tokens.RequireAuth)
+
+	authSvc := auth.NewService(userRepo, tokens)
+	auth.NewHandler(authSvc).RegisterRoutes(mux)
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
 		if err := pool.Ping(r.Context()); err != nil {
 			httpx.Error(w, http.StatusServiceUnavailable, "database unavailable")
