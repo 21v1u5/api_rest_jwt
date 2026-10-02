@@ -48,8 +48,9 @@ func run() error {
 	userSvc := user.NewService(userRepo)
 	user.NewHandler(userSvc).RegisterRoutes(mux, tokens.RequireAuth)
 
-	authSvc := auth.NewService(userRepo, tokens)
-	auth.NewHandler(authSvc).RegisterRoutes(mux)
+	refreshRepo := auth.NewRefreshRepository(pool)
+	authSvc := auth.NewService(userRepo, refreshRepo, tokens, cfg.RefreshTTL)
+	auth.NewHandler(authSvc).RegisterRoutes(mux, tokens.RequireAuth)
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
 		if err := pool.Ping(r.Context()); err != nil {
 			httpx.Error(w, http.StatusServiceUnavailable, "database unavailable")
